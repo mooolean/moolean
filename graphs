@@ -1,0 +1,9 @@
+    public void testAddEdge_3args() {
+        System.out.println("addEdge");
+        int start = 0;
+        int end = 0;
+        int weight = 0;
+        Graph instance = new Graph();
+        instance.addEdge(start, end, weight);
+        fail("The test case is a prototype.");
+    }
