@@ -1,0 +1,5 @@
+ private int adjMat[][];
+ 
+ public void addEdge(int start, int end, int weight) {
+        adjMat[start][end] = weight;
+    }
