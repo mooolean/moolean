@@ -1,0 +1,395 @@
+//Bandar Aldousari 1642409
+//Mahmoud Alhindi 1635777
+package GraphPackage;
+
+import java.io.PrintWriter;
+import java.util.HashSet;
+import java.util.Scanner;
+import java.util.Set;
+
+public class Graph implements UnionFind_ADT{
+
+    private final int MAX_VERTS = 20;
+    public static Vertex vertexList[];
+    private int adjMat[][];
+    private boolean connected = true;
+
+//  public Graph() {
+ //      for (int i = 0; i < MAX_VERTS; i++) {
+ //           vertexList[i].label = '$';
+ //       }
+  //  }
+
+    public Graph(int size) {
+        vertexList = new Vertex[size];
+        adjMat = new int[size][size];
+        for (int i = 0; i < size; i++) {
+            vertexList[i] = new Vertex('$');
+        }
+    }
+
+    public void addVertex(char lab) {
+        for (int i = 0; i < vertexList.length; i++) {
+            if (vertexList[i].label == '$') {
+                vertexList[i].label = lab;
+                break;
+            }
+        }
+    }
+
+    public void addEdge(int start, int end) {
+        adjMat[start][end] = 1;
+    }
+
+    public void addEdge(int start, int end, int weight) {
+        adjMat[start][end] = weight;
+    }
+
+    public void displayVertex(int v, Scanner input, PrintWriter output) {
+        output.print("VERTEX: " + v + " {" + vertexList[v].label + "} - VISIT: " + vertexList[v].wasVisited + " - ADJACENCY: ");
+
+        int count = 0;
+        for (int i = 0; i < adjMat[v].length; i++) {
+            if (adjMat[v][i] > 0) {
+                output.print(i + " ");
+                count++;
+            }
+        }
+        if (count == 0) {
+            output.print("none");
+        }
+
+        output.println("");
+
+    }
+
+    public void displayEdges(Scanner input, PrintWriter output, int numOfVertices, int numOfEdges) {
+        output.print("# of vertices is: " + numOfVertices + ", # of edges is:" + numOfEdges + "\r\n");
+
+        for (int i = 0; i < numOfVertices; i++) {
+            output.print(i + ": ");
+
+            for (int j = 0; j < adjMat[i].length; j++) {
+                if (adjMat[i][j] > 0) {
+                    output.print("" + i + "-" + j + " " + (double) adjMat[i][j] + " ");
+                }
+
+            }
+            output.println();
+        }
+    }
+
+    public void displayGraph(Scanner input, PrintWriter output) {
+        displayGraph(adjMat, input, output);
+    }
+
+    private void displayGraph(int[][] adjMat, Scanner input, PrintWriter output) {
+        output.println("\nAdjacency Matrix:\n");
+        output.print(" ");
+        for (int i = 0; i < vertexList.length; i++) {
+            output.print("      " + vertexList[i].label);
+        }
+        output.println("");
+        for (int i = 0; i < adjMat.length; i++) {
+            output.print(vertexList[i].label);
+            for (int j = 0; j < adjMat[i].length; j++) {
+                output.printf("%7d", adjMat[i][j]);
+            }
+            output.println("");
+        }
+
+    }
+
+    public void dfs(Scanner input, PrintWriter output) {
+        StackX s = new StackX();
+        int v = 0;
+        s.push(v);
+        vertexList[v].wasVisited = true;
+        output.print(v + " ");
+        while (!s.isEmpty()) {
+            if (getAdjUnvisitedVertex(v) > -1) {
+                v = getAdjUnvisitedVertex(v);
+                s.push(v);
+                vertexList[v].wasVisited = true;
+                output.print(v + " ");
+            } else {
+                v = s.pop();
+            }
+
+            if (s.isEmpty()) {
+                for (int i = 0; i < vertexList.length; i++) {
+                    if (vertexList[i].wasVisited == false) {
+                        v = i;
+                        s.push(v);
+                        vertexList[v].wasVisited = true;
+                        output.print(v + " ");
+                        disconnected();
+                        break;
+                    }
+                }
+            }
+        }
+
+        for (int i = 0; i < vertexList.length; i++) {
+            vertexList[i].wasVisited = false;
+        }
+    }
+
+    public void bfs(Scanner input, PrintWriter output) {
+        Queue q = new Queue();
+        q.insert(0);
+        vertexList[0].wasVisited = true;
+        int v2;
+        int v1;
+        while (!q.isEmpty()) {
+            v1 = q.remove();
+            output.print(v1 + " ");
+            while (getAdjUnvisitedVertex(v1) > -1) {
+                v2 = getAdjUnvisitedVertex(v1);
+                vertexList[v2].wasVisited = true;
+                q.insert(v2);
+            }
+            if (q.isEmpty()) {
+                for (int i = 0; i < vertexList.length; i++) {
+                    if (vertexList[i].wasVisited == false) {
+                        v2 = i;
+                        q.insert(v2);
+                        vertexList[v2].wasVisited = true;
+                        disconnected();
+                        break;
+                    }
+                }
+            }
+        }
+        for (int i = 0; i < vertexList.length; i++) {
+            vertexList[i].wasVisited = false;
+        }
+
+    }
+
+    public int getAdjUnvisitedVertex(int v) {
+        for (int i = 0; i < adjMat[v].length; i++) {
+            if (adjMat[v][i] > 0) {
+                if (vertexList[i].wasVisited == false) {
+                    return i;
+                } else {
+                    continue;
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    public boolean isConnected() {
+        return connected;
+    }
+
+    private void disconnected() {
+        connected = false;
+    }
+
+    public void findPath(int i, int[][] prev, PrintWriter output, int source) {
+        final int INFINITY = 999999;
+
+        for (int j = 0; j < prev[i].length; j++) {
+            if (prev[i][j] != INFINITY) {
+                if (prev[i][j] == source) {
+                    return;
+                }
+                output.print(" " + prev[i][j]);
+                findPath(prev[i][j], prev, output, source);
+            }
+        }
+    }
+
+    public void DijkstraUsingUnorderedArray(Graph graph, int source, PrintWriter output) {
+        if (graph.validGraph() == false) {
+            System.out.println("Graph is not valid");
+            System.exit(1);
+        }
+        if (source > vertexList.length) {
+            System.out.println("Source doesnt exist in the graph");
+            System.exit(1);
+        }
+        final int INFINITY = 999999;
+        int adjMat2[][] = adjMat;
+
+        for (int i = 0; i < adjMat2.length; i++) {
+            for (int j = 0; j < adjMat2[i].length; j++) {
+                if (adjMat2[i][j] == 0) {
+                    adjMat[i][j] = INFINITY;
+                }
+                if (i == j) {
+                    adjMat[i][j] = 0;
+                }
+            }
+        }
+
+        int[] distance = new int[vertexList.length];
+        int[][] prev = new int[vertexList.length][vertexList.length];
+        PriorityQueueArray pQueue = new PriorityQueueArray();
+        Vertex[] p = new Vertex[vertexList.length];
+
+        for (int i = 0; i < vertexList.length; i++) {
+            distance[i] = INFINITY;
+            pQueue.insert(i, INFINITY);
+        }
+        for (int i = 0; i < vertexList.length; i++) {
+            for (int j = 0; j < vertexList.length; j++) {
+                prev[i][j] = INFINITY;
+            }
+        }
+        distance[source] = 0;
+        pQueue.decreaseKey(source, 0);
+        int u;
+        while (!pQueue.isEmpty()) {
+            u = pQueue.deleteMin();
+            if (u == -1) {
+                break;
+            }
+            int alt = INFINITY;
+            for (int i = 0; i < adjMat2[u].length; i++) {
+                alt = distance[u] + adjMat[u][i];
+                if (alt < distance[i]) {
+                    distance[i] = alt;
+                    pQueue.decreaseKey(i, alt);
+                    for (int j = 0; j < vertexList.length; j++) {
+                        if (prev[i][j] == INFINITY) {
+                            prev[i][j] = u;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        output.print("\r\nShortest paths from " + source + " are: ");
+        for (int i = 0; i < distance.length; i++) {
+            output.print("\r\nA path from " + source + " to " + i + ": " + source);
+            findPath(i, prev, output, source);
+            if (i != source) {
+                output.print(" " + i);
+            }
+            output.print(" (Length: " + (double) distance[i] + ")");
+        }
+
+    }
+   
+
+    public void DijkstraUsingHeap(Graph graph, int source, PrintWriter output) {
+        if (graph.validGraph() == false) {
+            System.out.println("Graph is not valid");
+            System.exit(1);
+        }
+        if (source > vertexList.length) {
+            System.out.println("Source doesnt exist in the graph");
+            System.exit(1);
+        }
+        final int INFINITY = 999999;
+        int adjMat2[][] = adjMat;
+
+        for (int i = 0; i < adjMat2.length; i++) {
+            for (int j = 0; j < adjMat2[i].length; j++) {
+                if (adjMat2[i][j] == 0) {
+                    adjMat[i][j] = INFINITY;
+                }
+                if (i == j) {
+                    adjMat[i][j] = 0;
+                }
+            }
+        }
+
+        int[] distance = new int[vertexList.length];
+        int[][] prev = new int[vertexList.length][vertexList.length];
+        PriorityQueueHeap pQueue = new PriorityQueueHeap();
+        Vertex[] p = new Vertex[vertexList.length];
+
+        for (int i = 0; i < vertexList.length; i++) {
+            distance[i] = INFINITY;
+            pQueue.insert(i, INFINITY);
+        }
+        for (int i = 0; i < vertexList.length; i++) {
+            for (int j = 0; j < vertexList.length; j++) {
+                prev[i][j] = INFINITY;
+            }
+        }
+        distance[source] = 0;
+        pQueue.decreaseKey(source, 0);
+        int u;
+        while (!pQueue.isEmpty()) {
+            u = pQueue.deleteMin();
+            if (u == -1) {
+                break;
+            }
+            int alt = INFINITY;
+            for (int i = 0; i < adjMat2[u].length; i++) {
+                alt = distance[u] + adjMat[u][i];
+                if (alt < distance[i]) {
+                    distance[i] = alt;
+                    pQueue.decreaseKey(i, alt);
+                    for (int j = 0; j < vertexList.length; j++) {
+                        if (prev[i][j] == INFINITY) {
+                            prev[i][j] = u;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+  //      output.print("\r\nShortest paths from " + source + " are: ");
+  //      for (int i = 0; i < distance.length; i++) {
+  //          output.print("\r\nA path from " + source + " to " + i + ": " + source);
+  //          findPath(i, prev, output, source);
+  //          if (i != source) {
+  //              output.print(" " + i);
+  //        }
+  //          output.print(" (Length: " + (double) distance[i] + ")");
+        }
+
+    
+
+
+    public boolean validGraph() {
+        for (int i = 0; i < adjMat.length; i++) {
+            for (int j = 0; j < adjMat[i].length; j++) {
+                if (adjMat[i][j] < 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
+
+    }
+
+        public void Kruskal(Graph g, int weight){
+           
+          for (int i = 0; i<vertexList.length; i++){
+              makeset()
+          }
+    }
+    
+    
+    @Override
+    public void makeset(int x) {
+         Set<Integer> A = new HashSet<>();
+        int [] parent = new int[vertexList.length];
+        
+        
+        for (int i=0; i<vertexList.length; i++){
+           for (int j = 0; j<=i; j++){
+               parent[]
+           }
+        }
+    }
+
+    @Override
+    public void find(int x) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void union(int x, int y) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+}
