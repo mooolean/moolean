@@ -1,0 +1,51 @@
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.util.Scanner;
+
+
+public class Peer2 {
+
+   
+    public static void main(String[] args) throws SocketException, IOException {
+        
+         DatagramSocket Peer2Socket = new DatagramSocket(9876);
+         Scanner m = new Scanner(System.in);
+
+      
+      while(true)
+        {
+          
+          byte[] receivebuffer = new byte[1024];
+          byte[] sendbuffer  = new byte[1024];
+          DatagramPacket receivePacket = new DatagramPacket(receivebuffer, receivebuffer.length);
+          Peer2Socket.receive(receivePacket);
+          InetAddress IP = receivePacket.getAddress();
+          int portno = receivePacket.getPort();
+          String Peer1data = new String(receivePacket.getData());
+          System.out.println("\nPeer 1 : "+ Peer1data);
+          System.out.print("\nPeer 2 : ");
+   
+          String Peer2data = m.nextLine();
+          
+          sendbuffer = Peer2data.getBytes();
+          DatagramPacket sendPacket = new DatagramPacket(sendbuffer, sendbuffer.length, IP,portno);
+          Peer2Socket.send(sendPacket); 
+          
+          if(Peer2data.equalsIgnoreCase("bye"))
+          {
+              System.out.println("connection ended by Peer 2");
+              break;
+          }
+          
+          
+      }
+        Peer2Socket.close();
+    }
+            
+    }
